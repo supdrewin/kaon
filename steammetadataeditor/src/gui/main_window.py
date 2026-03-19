@@ -415,7 +415,7 @@ class MainWindow:
     # and reassigns the callback
     def set_var_no_callback(self, var, value, callback):
         try:
-            callbackId = var.trace_vinfo()[0][1]
+            callbackId = var.trace_info()[0][1]
             var.trace_remove("write", callbackId)
         except IndexError:
             pass
