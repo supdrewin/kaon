@@ -269,6 +269,12 @@ class MainWindow:
             text="Edit launch menu",
             command=self.create_launch_menu_window,
         )
+        # workaround for some devs whom don't even know how to properly config it
+        self.cloudSavesButton = Button(
+            self.buttonsFrame,
+            text="Edit cloud saves",
+            command=self.create_cloud_saves_window,
+        )
         self.revertAppButton = Button(
             self.buttonsFrame,
             text="Revert App",
@@ -310,6 +316,7 @@ class MainWindow:
         self.steamReleaseEntry1.pack(side="right", padx=(0, 10))
 
         self.launchMenuButton.pack(side="left")
+        self.cloudSavesButton.pack(side="left")
         self.revertAppButton.pack(side="left")
         self.saveButton.pack(side="right")
 
@@ -1204,6 +1211,219 @@ class MainWindow:
         # Prevent the use of the main window while this one exists
         self.launchMenuWindow.grab_set()
         self.launchMenuWindow.mainloop()
+
+    def create_cloud_saves_option(
+        self,
+        frame,
+        appID,
+        number,
+        root,
+        path,
+        pattern,
+        platforms,
+    ):
+
+        # Frames
+        padding = 20
+        mainFrame = LabelFrame(
+            frame,
+            padx=padding,
+            pady=padding,
+            text=number,
+        )
+        rootFrame = Frame(mainFrame, padx=padding)
+        pathFrame = Frame(mainFrame, padx=padding)
+        patternFrame = Frame(mainFrame, padx=padding)
+        platformFrame = Frame(mainFrame, padx=padding)
+
+        # String vars
+        rootVar = tk.StringVar()
+        patternVar = tk.StringVar()
+        pathVar = tk.StringVar()
+
+        winVar = tk.BooleanVar(platformFrame)
+        linVar = tk.BooleanVar(platformFrame)
+        macVar = tk.BooleanVar(platformFrame)
+
+        # Widgets
+        rootLabel = Label(rootFrame, text="Root:")
+        rootEntry = Entry(
+            rootFrame,
+            textvariable=rootVar,
+            width=60,
+        )
+
+        pathLabel = Label(pathFrame, text="Path:")
+        pathEntry = Entry(
+            pathFrame,
+            textvariable=pathVar,
+            width=60,
+        )
+
+        patternLabel = Label(patternFrame, text="Pattern:")
+        patternEntry = Entry(
+            patternFrame,
+            textvariable=patternVar,
+            width=60,
+        )
+
+        # Platform checkbuttons
+        winCheck = Checkbutton(
+            platformFrame,
+            text="Windows",
+            variable=winVar,
+            command=lambda: winVar.get(),
+        )
+        linCheck = Checkbutton(
+            platformFrame,
+            text="Linux",
+            variable=linVar,
+            command=lambda: linVar.get(),
+        )
+        macCheck = Checkbutton(
+            platformFrame,
+            text="MacOS",
+            variable=macVar,
+            command=lambda: macVar.get(),
+        )
+
+        # Pack widgets
+        rootLabel.pack(side="left", fill="both")
+        rootEntry.pack(side="right", fill="both")
+
+        pathLabel.pack(side="left", fill="both")
+        pathEntry.pack(side="right", fill="both")
+
+        patternLabel.pack(side="left", fill="both")
+        patternEntry.pack(side="right", fill="both")
+
+        winCheck.pack(side="left", fill="both")
+        linCheck.pack(side="left", fill="both")
+        macCheck.pack(side="left", fill="both")
+
+        # Pack frames
+        mainFrame.pack(expand=True)
+        rootFrame.pack(side="top", fill="both", pady=(padding, 0))
+        pathFrame.pack(side="top", fill="both")
+        patternFrame.pack(side="top", fill="both")
+        platformFrame.pack(side="top")
+
+        # Insert data
+        for platform in platforms.values():
+            if platform == "Windows":
+                winVar.set(True)
+            elif platform == "Linux":
+                linVar.set(True)
+            elif platform == "MacOS":
+                macVar.set(True)
+
+        self.set_var_no_callback(
+            rootVar,
+            root,
+            lambda _a, _b, _c: self.set_data_from_section(
+                appID, rootVar.get(), "ufs", "savefiles", number, "root"
+            ),
+        )
+
+        self.set_var_no_callback(
+            pathVar,
+            path,
+            lambda _a, _b, _c: self.set_data_from_section(
+                appID, pathVar.get(), "ufs", "savefiles", number, "path"
+            ),
+        )
+
+        self.set_var_no_callback(
+            patternVar,
+            pattern,
+            lambda _a, _b, _c: self.set_data_from_section(
+                appID, patternVar.get(), "ufs", "savefiles", number, "pattern"
+            ),
+        )
+
+        # Update to return correct values
+        mainFrame.update()
+        return [
+            mainFrame.winfo_reqwidth() + padding,
+            mainFrame.winfo_reqheight(),
+            padding,
+        ]
+
+    def update_cloud_saves_window(self, appID):
+        # Clear frame and store current scroll position
+        scrollbarPosition = 0
+        for widget in self.scrollFrame.scrollableFrame.winfo_children():
+            scrollbarPosition = self.scrollFrame.scrollbar.get()[0]
+            widget.destroy()
+
+        # Read launch options and gather data
+        appSavefilesOptions = self.get_data_from_section(
+            appID, "ufs", "savefiles"
+        )
+        if not appSavefilesOptions:
+            return
+
+        frameCount = 0
+        for savefilesOption in appSavefilesOptions.keys():
+            root = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "root"
+            )
+            path = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "path"
+            )
+            pattern = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "pattern"
+            )
+            platforms = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "platforms"
+            )
+
+            geometry = self.create_cloud_saves_option(
+                self.scrollFrame.scrollableFrame,
+                appID,
+                savefilesOption,
+                root,
+                path,
+                pattern,
+                platforms,
+            )
+
+            if frameCount < 2:
+                frameCount += 1
+
+        # Offsets size of scrollbar and
+        # takes padding (geometry[2]) into account
+        self.scrollFrame.scrollbar.update()
+        geometry[0] += self.scrollFrame.scrollbar.winfo_reqwidth()
+        geometry[1] *= frameCount
+        geometry[1] += geometry[2] * 2
+
+        # Resizes window depending on the number of launch options
+        self.scrollFrame.canvas.config(width=geometry[0], height=geometry[1])
+        self.scrollFrame.canvas.yview_moveto(scrollbarPosition)
+
+    def create_cloud_saves_window(self):
+        appName = self.nameVar.get()
+        appID = int(self.idVar.get())
+
+        self.cloudSavesWindow = tk.Toplevel(self.window)
+        self.cloudSavesWindow.resizable(False, False)
+        self.cloudSavesWindow.title(
+            f"Cloud Saves Editor for {appName} ({appID})"
+        )
+
+        self.scrollFrame = ScrollableFrame(self.cloudSavesWindow)
+        self.scrollFrame.scrollableFrame.config(bg=config.BG, padx=20, pady=20)
+
+        self.update_cloud_saves_window(appID)
+
+        self.scrollFrame.pack()
+
+        self.cloudSavesWindow.update()
+        self.center_window(self.cloudSavesWindow)
+        # Prevent the use of the main window while this one exists
+        self.cloudSavesWindow.grab_set()
+        self.cloudSavesWindow.mainloop()
 
     def populate_app_list(self):
         # Get all applications found in appinfo.vdf
