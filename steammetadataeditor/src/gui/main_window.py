@@ -45,16 +45,12 @@ class MainWindow:
         self.modifiedApps = []
         silent = config.silent
         export = config.export
-        self.vdf_path = os.path.join(
-            config.STEAM_PATH, "appcache", "appinfo.vdf"
-        )
+        self.vdf_path = os.path.join(config.STEAM_PATH, "appcache", "appinfo.vdf")
 
         if export is not None:
             self.modifiedApps.extend(export)
             self.load_modifications()
-            self.appinfo = Appinfo(
-                self.vdf_path, True, apps=self.modifiedApps
-            )
+            self.appinfo = Appinfo(self.vdf_path, True, apps=self.modifiedApps)
 
             for app in self.modifiedApps:
                 self.save_original_data(app)
@@ -63,14 +59,12 @@ class MainWindow:
 
         if silent:
             self.load_modifications()
-            self.appinfo = Appinfo(
-                self.vdf_path, True, apps=self.modifiedApps
-            )
+            self.appinfo = Appinfo(self.vdf_path, True, apps=self.modifiedApps)
 
             for app in self.modifiedApps:
-                self.appinfo.parsedAppInfo[app]["sections"] = self.jsonData[
-                    str(app)
-                ]["modified"]
+                self.appinfo.parsedAppInfo[app]["sections"] = self.jsonData[str(app)][
+                    "modified"
+                ]
 
             self.write_data_to_appinfo(notice=False)
 
@@ -78,9 +72,9 @@ class MainWindow:
             self.create_main_window()
 
             for app in self.modifiedApps:
-                self.appinfo.parsedAppInfo[app]["sections"] = self.jsonData[
-                    str(app)
-                ]["modified"]
+                self.appinfo.parsedAppInfo[app]["sections"] = self.jsonData[str(app)][
+                    "modified"
+                ]
 
     def create_main_window(self):
         # Define main window
@@ -136,9 +130,7 @@ class MainWindow:
         self.searchBarVar = tk.StringVar()
 
         # Layout setup
-        self.leftFrame = LabelFrame(
-            self.window, padx=10, pady=10, text="Search:"
-        )
+        self.leftFrame = LabelFrame(self.window, padx=10, pady=10, text="Search:")
         self.rightContainerFrame = Frame(self.window, padx=10, pady=10)
         # Label specific
         self.rightIdFrame = Frame(self.rightContainerFrame)
@@ -269,6 +261,12 @@ class MainWindow:
             text="Edit launch menu",
             command=self.create_launch_menu_window,
         )
+        # workaround for some devs whom don't even know how to properly config it
+        self.cloudSavesButton = Button(
+            self.buttonsFrame,
+            text="Edit cloud saves",
+            command=self.create_cloud_saves_window,
+        )
         self.revertAppButton = Button(
             self.buttonsFrame,
             text="Revert App",
@@ -310,6 +308,7 @@ class MainWindow:
         self.steamReleaseEntry1.pack(side="right", padx=(0, 10))
 
         self.launchMenuButton.pack(side="left")
+        self.cloudSavesButton.pack(side="left")
         self.revertAppButton.pack(side="left")
         self.saveButton.pack(side="right")
 
@@ -317,9 +316,7 @@ class MainWindow:
         self.leftFrame.pack(side="left", fill="both")
         self.rightContainerFrame.pack(side="right", fill="both")
 
-        self.rightIdFrame.pack(
-            side="top", fill="both", pady=(0, config.ENTRY_PADDING)
-        )
+        self.rightIdFrame.pack(side="top", fill="both", pady=(0, config.ENTRY_PADDING))
         self.rightNameFrame.pack(side="top", fill="both", pady=config.ENTRY_PADDING)
         self.rightOsListFrame.pack(side="top", fill="both", pady=config.ENTRY_PADDING)
         self.rightSortAsFrame.pack(side="top", fill="both", pady=config.ENTRY_PADDING)
@@ -364,25 +361,19 @@ class MainWindow:
 
         for library in libraries:
             for app in apps:
-                install_dir = self.get_data_from_section(
-                    app, "config", "installdir"
-                )
-                install_path = os.path.join(
-                    library, "steamapps", "common", install_dir
-                )
+                install_dir = self.get_data_from_section(app, "config", "installdir")
+                install_path = os.path.join(library, "steamapps", "common", install_dir)
                 if not os.path.exists(install_path):
                     continue
                 self.appinfo.parsedAppInfo[app]["installed"] = True
-                self.appinfo.parsedAppInfo[app][
-                    "install_path"
-                ] = install_path
+                self.appinfo.parsedAppInfo[app]["install_path"] = install_path
 
     def write_modifications(self):
         with open(f"{config.CONFIG_PATH}/modifications.json", "w") as mod:
             for app in self.modifiedApps:
-                self.jsonData[str(app)][
-                    "modified"
-                ] = self.appinfo.parsedAppInfo[app]["sections"]
+                self.jsonData[str(app)]["modified"] = self.appinfo.parsedAppInfo[app][
+                    "sections"
+                ]
             json.dump(self.jsonData, mod, indent=2)
 
     def save_original_data(self, appID):
@@ -432,7 +423,7 @@ class MainWindow:
 
         data = self.appinfo.parsedAppInfo[appID]["sections"]["appinfo"]
         # Access all but the last element
-        for section in sections[0:len(sections) - 1]:
+        for section in sections[0 : len(sections) - 1]:
             try:
                 data = data[section]
             except KeyError:
@@ -545,12 +536,8 @@ class MainWindow:
         appName = self.get_data_from_section(appID, "common", "name")
         appOsList = self.get_data_from_section(appID, "common", "oslist")
         appSortAs = self.get_data_from_section(appID, "common", "sortas")
-        appDeveloper = self.get_data_from_section(
-            appID, "extended", "developer"
-        )
-        appPublisher = self.get_data_from_section(
-            appID, "extended", "publisher"
-        )
+        appDeveloper = self.get_data_from_section(appID, "extended", "developer")
+        appPublisher = self.get_data_from_section(appID, "extended", "publisher")
         appSteamReleaseDate = self.get_data_from_section(
             appID, "common", "steam_release_date"
         )
@@ -784,9 +771,7 @@ class MainWindow:
     def add_launch_option(self, appID):
         launchOptions = self.get_data_from_section(appID, "config", "launch")
         newEntryNumber = str(len(launchOptions))
-        self.set_data_from_section(
-            appID, {}, "config", "launch", newEntryNumber
-        )
+        self.set_data_from_section(appID, {}, "config", "launch", newEntryNumber)
 
         self.update_launch_menu_window(appID)
 
@@ -830,11 +815,9 @@ class MainWindow:
         elif execDir[index:] == steamDir[index]:
             return ""
         else:
-            return "/".join(execDir[index + 1:])
+            return "/".join(execDir[index + 1 :])
 
-    def generate_launch_option_string(
-        self, appID, execVar, wkngDirVar, pathType
-    ):
+    def generate_launch_option_string(self, appID, execVar, wkngDirVar, pathType):
         install_path = self.appinfo.parsedAppInfo[appID]["install_path"]
 
         if pathType == "exe":
@@ -844,9 +827,7 @@ class MainWindow:
             if not exePath:
                 return
 
-            exePath = self.calculate_parent_folders(
-                exePath, install_path
-            )
+            exePath = self.calculate_parent_folders(exePath, install_path)
 
             wkngDirPath = os.path.split(exePath)[0]
 
@@ -863,9 +844,7 @@ class MainWindow:
             if not wkngDirPath:
                 return
 
-            wkngDirPath = self.calculate_parent_folders(
-                wkngDirPath, install_path
-            )
+            wkngDirPath = self.calculate_parent_folders(wkngDirPath, install_path)
 
             if config.CURRENT_OS == "Windows":
                 wkngDirPath = wkngDirPath.replace("/", "\\")
@@ -1112,9 +1091,7 @@ class MainWindow:
             widget.destroy()
 
         # Read launch options and gather data
-        appLaunchOptions = self.get_data_from_section(
-            appID, "config", "launch"
-        )
+        appLaunchOptions = self.get_data_from_section(appID, "config", "launch")
         if not appLaunchOptions:
             self.ask_to_create_launch_option(appID)
             return
@@ -1188,9 +1165,7 @@ class MainWindow:
 
         self.launchMenuWindow = tk.Toplevel(self.window)
         self.launchMenuWindow.resizable(False, False)
-        self.launchMenuWindow.title(
-            f"Launch Menu Editor for {appName} ({appID})"
-        )
+        self.launchMenuWindow.title(f"Launch Menu Editor for {appName} ({appID})")
 
         self.scrollFrame = ScrollableFrame(self.launchMenuWindow)
         self.scrollFrame.scrollableFrame.config(bg=config.BG, padx=20, pady=20)
@@ -1204,6 +1179,218 @@ class MainWindow:
         # Prevent the use of the main window while this one exists
         self.launchMenuWindow.grab_set()
         self.launchMenuWindow.mainloop()
+
+    def create_cloud_saves_option(
+        self,
+        frame,
+        appID,
+        number,
+        root,
+        path,
+        pattern,
+        platforms,
+    ):
+
+        # Frames
+        padding = 20
+        mainFrame = LabelFrame(
+            frame,
+            padx=padding,
+            pady=padding,
+            text=number,
+        )
+        rootFrame = Frame(mainFrame, padx=padding)
+        pathFrame = Frame(mainFrame, padx=padding)
+        patternFrame = Frame(mainFrame, padx=padding)
+        platformFrame = Frame(mainFrame, padx=padding)
+
+        # String vars
+        rootVar = tk.StringVar()
+        patternVar = tk.StringVar()
+        pathVar = tk.StringVar()
+
+        winVar = tk.BooleanVar(platformFrame)
+        linVar = tk.BooleanVar(platformFrame)
+        macVar = tk.BooleanVar(platformFrame)
+
+        # Widgets
+        rootLabel = Label(rootFrame, text="Root:")
+        rootEntry = Entry(
+            rootFrame,
+            textvariable=rootVar,
+            width=60,
+        )
+
+        pathLabel = Label(pathFrame, text="Path:")
+        pathEntry = Entry(
+            pathFrame,
+            textvariable=pathVar,
+            width=60,
+        )
+
+        patternLabel = Label(patternFrame, text="Pattern:")
+        patternEntry = Entry(
+            patternFrame,
+            textvariable=patternVar,
+            width=60,
+        )
+
+        # Platform checkbuttons
+        winCheck = Checkbutton(
+            platformFrame,
+            text="Windows",
+            variable=winVar,
+            command=lambda: winVar.get(),
+        )
+        linCheck = Checkbutton(
+            platformFrame,
+            text="Linux",
+            variable=linVar,
+            command=lambda: linVar.get(),
+        )
+        macCheck = Checkbutton(
+            platformFrame,
+            text="MacOS",
+            variable=macVar,
+            command=lambda: macVar.get(),
+        )
+
+        # Pack widgets
+        rootLabel.pack(side="left", fill="both")
+        rootEntry.pack(side="right", fill="both")
+
+        pathLabel.pack(side="left", fill="both")
+        pathEntry.pack(side="right", fill="both")
+
+        patternLabel.pack(side="left", fill="both")
+        patternEntry.pack(side="right", fill="both")
+
+        winCheck.pack(side="left", fill="both")
+        linCheck.pack(side="left", fill="both")
+        macCheck.pack(side="left", fill="both")
+
+        # Pack frames
+        mainFrame.pack(expand=True)
+        rootFrame.pack(side="top", fill="both", pady=(padding, 0))
+        pathFrame.pack(side="top", fill="both")
+        patternFrame.pack(side="top", fill="both")
+        platformFrame.pack(side="top")
+
+        # Insert data
+        try:
+            for platform in platforms.values():
+                if platform == "Windows":
+                    winVar.set(True)
+                elif platform == "Linux":
+                    linVar.set(True)
+                elif platform == "MacOS":
+                    macVar.set(True)
+        except:
+            pass
+
+        self.set_var_no_callback(
+            rootVar,
+            root,
+            lambda _a, _b, _c: self.set_data_from_section(
+                appID, rootVar.get(), "ufs", "savefiles", number, "root"
+            ),
+        )
+
+        self.set_var_no_callback(
+            pathVar,
+            path,
+            lambda _a, _b, _c: self.set_data_from_section(
+                appID, pathVar.get(), "ufs", "savefiles", number, "path"
+            ),
+        )
+
+        self.set_var_no_callback(
+            patternVar,
+            pattern,
+            lambda _a, _b, _c: self.set_data_from_section(
+                appID, patternVar.get(), "ufs", "savefiles", number, "pattern"
+            ),
+        )
+
+        # Update to return correct values
+        mainFrame.update()
+        return [
+            mainFrame.winfo_reqwidth() + padding,
+            mainFrame.winfo_reqheight(),
+            padding,
+        ]
+
+    def update_cloud_saves_window(self, appID):
+        # Clear frame and store current scroll position
+        scrollbarPosition = 0
+        for widget in self.scrollFrame.scrollableFrame.winfo_children():
+            scrollbarPosition = self.scrollFrame.scrollbar.get()[0]
+            widget.destroy()
+
+        # Read launch options and gather data
+        appSavefilesOptions = self.get_data_from_section(appID, "ufs", "savefiles")
+        if not appSavefilesOptions:
+            return
+
+        frameCount = 0
+        for savefilesOption in appSavefilesOptions.keys():
+            root = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "root"
+            )
+            path = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "path"
+            )
+            pattern = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "pattern"
+            )
+            platforms = self.get_data_from_section(
+                appID, "ufs", "savefiles", savefilesOption, "platforms"
+            )
+
+            geometry = self.create_cloud_saves_option(
+                self.scrollFrame.scrollableFrame,
+                appID,
+                savefilesOption,
+                root,
+                path,
+                pattern,
+                platforms,
+            )
+
+            if frameCount < 2:
+                frameCount += 1
+
+        # Offsets size of scrollbar and
+        # takes padding (geometry[2]) into account
+        self.scrollFrame.scrollbar.update()
+        geometry[0] += self.scrollFrame.scrollbar.winfo_reqwidth()
+        geometry[1] *= frameCount
+        geometry[1] += geometry[2] * 2
+
+        # Resizes window depending on the number of launch options
+        self.scrollFrame.canvas.config(width=geometry[0], height=geometry[1])
+        self.scrollFrame.canvas.yview_moveto(scrollbarPosition)
+
+    def create_cloud_saves_window(self):
+        appName = self.nameVar.get()
+        appID = int(self.idVar.get())
+
+        self.cloudSavesWindow = tk.Toplevel(self.window)
+        self.cloudSavesWindow.resizable(False, False)
+        self.cloudSavesWindow.title(f"Cloud Saves Editor for {appName} ({appID})")
+
+        self.scrollFrame = ScrollableFrame(self.cloudSavesWindow)
+        self.scrollFrame.scrollableFrame.config(bg=config.BG, padx=20, pady=20)
+
+        self.update_cloud_saves_window(appID)
+
+        self.scrollFrame.pack()
+
+        self.cloudSavesWindow.update()
+        self.center_window(self.cloudSavesWindow)
+        # Prevent the use of the main window while this one exists
+        self.cloudSavesWindow.grab_set()
+        self.cloudSavesWindow.mainloop()
 
     def populate_app_list(self):
         # Get all applications found in appinfo.vdf
